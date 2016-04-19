@@ -13,23 +13,24 @@ var Promise = require ('bluebird');
 
 var request = Promise.promisifyAll (require ("request"));
 
+
 var IntialConfig = require ('./IntialConfig');
 
 function promise_request(option) {
     return new Promise (function (resolve, reject) {
-        request (option, function (err, body, response) {
+        request (option, function (err, res, body) {
             if (err) {
                 reject (err);
             } else {
+                console.log (body)
                 resolve ({
                     body: body,
-                    response: response
+                    response: res
                 })
             }
         })
     })
 }
-
 
 
 var exec = require ('child_process').exec;
@@ -51,15 +52,7 @@ var CMD_TEST_UPLOAD = 'open ./upload_test.app';
 var CMD_PRO_UPLOAD = 'open ./upload_pro.app';
 
 
-
-
-
-
-
-
-
-
-var env = "test";
+var env = "test";  //test为测试环境production为生产环境
 
 //核心数据库
 exec (CMD_TEST_APP_CLEAN, function (err, stdout, stderr) {
@@ -69,88 +62,139 @@ exec (CMD_TEST_APP_CLEAN, function (err, stdout, stderr) {
     exec (CMD_TESTSYNC_RESET, function (err, stdout, stderr) {
         if (err) throw err;
 
-        //插入验证码
-        var SecurityCode = {
-            method: 'POST',
-            url: ENV (env).Test.APP_URL.APP_API_HOME + '/users/send_security_code',
-            body: {
-                "phone_number": "13636694202",
-                "role_type": 0,
-                "sms_category": 2
-            },
-            json: true
-        };
-
-        //插入邀请码
-        var InvitationCode = {
-            method: 'POST',
-            url: ENV (env).APP_URL.SyncUrl,
-            body: {code: '1234', type: 'InvitationCode'},
-            json: true
-        };
 
 
-        //插入医院
-        var City_list = {
-            method: 'POST',
-            url: ENV (env).APP_URL.SyncUrl,
-            body: IntialConfig.City_list,
-            json: true
-        };
+        setTimeout(function(){
 
 
-        //插入医院
-        var Department_list = {
-            method: 'POST',
-            url: ENV (env).APP_URL.SyncUrl,
-            body: IntialConfig.Department_list,
-            json: true
-        };
+            //插入验证码
+            var SecurityCode = {
+                method: 'POST',
+                url: ENV (env).APP_URL.APP_API_HOME + '/users/send_security_code',
+                body: {
+                    "phone_number": "13636694202",
+                    "role_type": 0,
+                    "sms_category": 2
+                },
+                json: true
+            };
 
-        promise_request (SecurityCode)
+            //插入邀请码
+            var InvitationCode = {
+                method: 'POST',
+                url: ENV (env).APP_URL.SyncUrl,
+                body: {code: '1234', type: 'InvitationCode'},
+                json: true
+            };
 
-            .then (function () {
-                promise_request (InvitationCode)
-            })
 
-            .then (function () {
+            //插入医院
+            var City_list = {
+                method: 'POST',
+                url: ENV (env).APP_URL.SyncUrl,
+                body: IntialConfig.City_list,
+                json: true
+            };
 
-                Query ("security_code_doctor_13636694202_2", 'get', 'test', ENV (env).APP_URL.couchbase8091, function (result) {
 
-                    var Doctor_Option = {
-                        method: 'POST',
-                        url: ENV (env).APP_URL.APP_API_DOC + '/users/register',
-                        body: {
-                            "phone_number": "13636694202",
-                            "password": "1234",
-                            "role_type": 0,
-                            "security_code": result.value.code,
-                            "invitation_code": "1234"
-                        },
-                        json: true
-                    };
+            //插入医院
+            var Department_list = {
+                method: 'POST',
+                url: ENV (env).APP_URL.SyncUrl,
+                body: IntialConfig.Department_list,
+                json: true
+            };
 
-                    //注册医生
-                    request (Doctor_Option, function (err, res, body) {
-                        if (err) throw err;
-                        console.log (body);
-                        //上传数据
-                        exec (CMD_TEST_UPLOAD, function (err, stdout, stderr) {
-                            if (err) throw err;
+            request(InvitationCode,function(){
+                console.log ("111")
+                console.log (Date.now ())
+
+                request(SecurityCode,function(){
+                    console.log ("222")
+                    console.log (Date.now ())
+
+                    request(City_list,function(){
+
+                        console.log ("333")
+                        console.log (Date.now ())
+                        request(Department_list,function(){
+                            console.log ("444")
+                            console.log (Date.now ())
+
+
+
+                            Query ("security_code_doctor_13636694202_2", 'get', 'test', ENV (env).APP_URL.couchbase8091, function (result) {
+
+                                var Doctor_Option = {
+                                    method: 'POST',
+                                    url: ENV (env).APP_URL.APP_API_DOC + '/users/register',
+                                    body: {
+                                        "phone_number": "13636694202",
+                                        "password": "1234",
+                                        "role_type": 0,
+                                        "security_code": result.value.code,
+                                        "invitation_code": "1234"
+                                    },
+                                    json: true
+                                };
+
+                                //注册医生
+                                request (Doctor_Option, function (err, res, body) {
+                                    if (err) throw err;
+                                    console.log (Date.now ())
+                                    console.log (body);
+                                    //上传数据
+                                    //exec (CMD_TEST_UPLOAD, function (err, stdout, stderr) {
+                                    //    if (err) throw err;
+                                    //})
+                                })
+                            });
+
+
+
                         })
+
+
+
+
                     })
-                });
+
+
+
+
+                })
+
+
+
+
             })
+
+
+
+
+
+
+
+        },15000)
+
+
+
+
     })
 })
 
 
-//AMD
-exec (CMD_TEST_AMD_CLEAN, function (err, stdout, stderr) {
-    if (err) throw err;
-    console.log ("AMD数据库清空完毕")
 
 
-})
+
+//
+//
+////AMD
+//exec (CMD_TEST_AMD_CLEAN, function (err, stdout, stderr) {
+//    if (err) throw err;
+//    console.log ("AMD数据库清空完毕")
+//
+//
+//})
 
 
