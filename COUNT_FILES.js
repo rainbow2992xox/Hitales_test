@@ -17,7 +17,7 @@ fs.readFile("./test.pdf", (err, pdfBuffer) => {
 })
 
 
-var keypath = "./汤予双强直793病案/file1/**";
+var keypath = "./test_patient/file1/**";
 
 var filetype = ['.png', '.jpeg', '.jpg', '.xps', '.doc', '.docx', '.pdf'];
 
