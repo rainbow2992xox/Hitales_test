@@ -15,8 +15,8 @@ function Query(option, method, database, serveraddress, callback) {
         var sql = N1qlQuery.fromString (option);
         bucket.query (sql, function (err, result) {
 
-            if (err)throw err;
-            callback (result);
+
+            callback (err,result);
 
 
         });
@@ -24,14 +24,14 @@ function Query(option, method, database, serveraddress, callback) {
         bucket.get (option, function (err, result) {
 
 
-            callback (result);
+            callback (err,result);
 
         });
     } else if (method == 'remove') {
         bucket.remove (option, function (err, result) {
 
 
-            callback (result);
+            callback (err,result);
         });
     }
 
